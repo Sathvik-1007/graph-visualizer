@@ -6,6 +6,8 @@ An interactive force-directed graph layout engine built with vanilla HTML, CSS, 
 
 👉 **[Try it live →](https://sathvik-1007.github.io/graph-visualizer/)**
 
+<video src="https://github.com/Sathvik-1007/graph-visualizer/raw/master/vid.mp4" controls autoplay loop muted playsinline width="100%"></video>
+
 ## Features
 
 - **Force-directed physics simulation** — Coulomb repulsion, Hooke spring attraction, center gravity, velocity damping
