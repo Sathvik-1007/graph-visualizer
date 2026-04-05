@@ -6,7 +6,7 @@ An interactive force-directed graph layout engine built with vanilla HTML, CSS, 
 
 👉 **[Try it live →](https://sathvik-1007.github.io/graph-visualizer/)**
 
-![demo](./vid.mp4)
+![demo](./gif.gif)
 
 ## Features
 
