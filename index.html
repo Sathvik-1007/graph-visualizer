@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Force Graph Visualizer</title>
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <div class="canvas-wrap">
+    <canvas id="canvas"></canvas>
+
+    <div class="hud">
+      <button class="hud-btn active" id="btn-play" title="Play / Pause">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M3 2.5v11L13 8z"/></svg>
+      </button>
+      <button class="hud-btn" id="btn-fit" title="Fit view">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="4" height="4" rx="1"/><rect x="10" y="2" width="4" height="4" rx="1"/><rect x="2" y="10" width="4" height="4" rx="1"/><rect x="10" y="10" width="4" height="4" rx="1"/></svg>
+      </button>
+      <button class="hud-btn" id="btn-center" title="Reset view">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="5"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>
+      </button>
+    </div>
+
+    <div class="info-badge" id="info-badge">
+      Scroll to zoom &nbsp;·&nbsp; Drag to pan &nbsp;·&nbsp; Drag node to move<br>
+      Click node to center &nbsp;·&nbsp; Double-click to pin/unpin
+    </div>
+
+    <div class="tooltip" id="tooltip">
+      <div class="tt-name" id="tt-name"></div>
+      <div class="tt-meta" id="tt-meta"></div>
+      <div class="tt-neighbors" id="tt-nbrs"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <svg class="panel-logo" viewBox="0 0 26 26" fill="none">
+        <circle cx="13" cy="5" r="3.5" fill="#4f98a3"/>
+        <circle cx="4"  cy="20" r="2.5" fill="#4f98a3" opacity=".55"/>
+        <circle cx="22" cy="20" r="2.5" fill="#4f98a3" opacity=".55"/>
+        <circle cx="13" cy="17" r="4.5" fill="#e8af34"/>
+        <line x1="13" y1="8.5" x2="13" y2="12.5" stroke="#4f98a3" stroke-width="1.5" opacity=".6"/>
+        <line x1="11" y1="15" x2="5.5"  y2="18.5" stroke="#4f98a3" stroke-width="1.5" opacity=".6"/>
+        <line x1="15" y1="15" x2="20.5" y2="18.5" stroke="#4f98a3" stroke-width="1.5" opacity=".6"/>
+      </svg>
+      <div>
+        <div class="panel-title">Graph Visualizer</div>
+        <div class="panel-sub">Force-directed layout engine</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="section">
+      <div class="sec-title">Live Stats</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="st-n">0</div><div class="stat-lbl">Nodes</div></div>
+        <div class="stat-card"><div class="stat-val" id="st-e">0</div><div class="stat-lbl">Edges</div></div>
+        <div class="stat-card"><div class="stat-val" id="st-d">—</div><div class="stat-lbl">Density</div></div>
+        <div class="stat-card"><div class="stat-val" id="st-md">0</div><div class="stat-lbl">Max Degree</div></div>
+      </div>
+      <div class="energy-wrap">
+        <div class="energy-row"><span>Simulation Energy</span><span id="en-val">100%</span></div>
+        <div class="energy-bar"><div class="energy-fill" id="en-fill" style="width:100%"></div></div>
+      </div>
+    </div>
+
+    <!-- Generate -->
+    <div class="section">
+      <div class="sec-title">Generate Graph</div>
+      <button class="btn btn-primary" onclick="generate('ba')">⬡&nbsp; Scale-Free (Barabási–Albert)</button>
+      <div class="btn-grid">
+        <button class="btn" onclick="generate('er')">⚄ Random (ER)</button>
+        <button class="btn" onclick="generate('clusters')">◉ Clusters</button>
+      </div>
+      <div class="btn-grid">
+        <button class="btn" onclick="generate('grid')">⊞ Grid</button>
+        <button class="btn" onclick="generate('star')">✦ Stars</button>
+      </div>
+      <button class="btn" onclick="generate('tree')">↳ Binary Tree</button>
+    </div>
+
+    <!-- Physics -->
+    <div class="section">
+      <div class="sec-title">Physics — Force Model</div>
+      <div class="sl-group">
+        <div class="sl-row"><span class="sl-lbl">Repulsion (Coulomb)</span><span class="sl-val" id="v-rep">5000</span></div>
+        <input type="range" id="s-rep" min="200" max="25000" value="5000" step="100">
+      </div>
+      <div class="sl-group">
+        <div class="sl-row"><span class="sl-lbl">Spring Length</span><span class="sl-val" id="v-spl">100</span></div>
+        <input type="range" id="s-spl" min="20" max="400" value="100" step="5">
+      </div>
+      <div class="sl-group">
+        <div class="sl-row"><span class="sl-lbl">Spring Strength</span><span class="sl-val" id="v-sps">0.10</span></div>
+        <input type="range" id="s-sps" min="0.005" max="0.6" value="0.1" step="0.005">
+      </div>
+      <div class="sl-group">
+        <div class="sl-row"><span class="sl-lbl">Center Gravity</span><span class="sl-val" id="v-grav">0.010</span></div>
+        <input type="range" id="s-grav" min="0" max="0.12" value="0.01" step="0.001">
+      </div>
+      <div class="sl-group">
+        <div class="sl-row"><span class="sl-lbl">Velocity Damping</span><span class="sl-val" id="v-damp">0.85</span></div>
+        <input type="range" id="s-damp" min="0.4" max="0.99" value="0.85" step="0.01">
+      </div>
+      <button class="btn" onclick="reheat()">🔥 Reheat Simulation</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="section">
+      <div class="sec-title">Node Degree → Color</div>
+      <div class="legend">
+        <div class="leg-item"><div class="leg-dot" style="background:#3d3c3a;box-shadow:0 0 4px rgba(61,60,58,0.4)"></div>Isolated (0–1)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#5591c7;box-shadow:0 0 5px rgba(85,145,199,0.5)"></div>Low (2–4)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#4f98a3;box-shadow:0 0 6px rgba(79,152,163,0.6)"></div>Medium (5–9)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#e8af34;box-shadow:0 0 7px rgba(232,175,52,0.65)"></div>High (10–18)</div>
+        <div class="leg-item"><div class="leg-dot" style="background:#fdab43;width:10px;height:10px;box-shadow:0 0 9px rgba(253,171,67,0.8)"></div>Hub (19+)</div>
+      </div>
+    </div>
+
+    <!-- Edit -->
+    <div class="section">
+      <div class="sec-title">Edit</div>
+      <button class="btn" onclick="addNode()">+ Add Random Node</button>
+      <button class="btn btn-danger" onclick="clearAll()">✕ Clear Graph</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
