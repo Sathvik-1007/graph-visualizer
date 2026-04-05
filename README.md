@@ -2,6 +2,8 @@
 
 An interactive force-directed graph layout engine built with vanilla HTML, CSS, and JavaScript. No dependencies — just open `index.html` in a browser.
 
+![Demo](vid.gif)
+
 ## Features
 
 - **Force-directed physics simulation** — Coulomb repulsion, Hooke spring attraction, center gravity, velocity damping
